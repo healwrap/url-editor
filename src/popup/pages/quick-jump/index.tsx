@@ -1,5 +1,12 @@
-import { Button, Card, List, Pagination, Tabs, Input, Form, Modal, Space } from 'antd';
-import { DeleteOutlined, EditOutlined, LinkOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons';
+import { Button, Card, List, Pagination, Tabs, Input, Form, Modal, Space, Popconfirm, message } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  LinkOutlined,
+  PlusOutlined,
+  SaveOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { ConfigContext } from '~popup';
 import { openPage, randomString } from '~popup/utils';
@@ -14,11 +21,10 @@ type LinkItem = {
   url: string;
 };
 
-// 定义链接分类
-const linkCategories = {
-  '1': '测试链接',
-  '2': '平台直达',
-  '3': '测试工具',
+// 定义类别类型
+type CategoryItem = {
+  id: string;
+  title: string;
 };
 
 export default function App() {
@@ -27,6 +33,9 @@ export default function App() {
   // 持久化存储的链接
   const [storedLinks, setStoredLinks] = useStorage<Record<string, LinkItem[]>>('quickJumpLinks', {});
 
+  // 持久化存储的标签页类别
+  const [categories, setCategories] = useStorage<CategoryItem[]>('quickJumpCategories', []);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState('1');
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -34,11 +43,23 @@ export default function App() {
   const [newTitle, setNewTitle] = useState('');
   const [newUrl, setNewUrl] = useState('');
 
+  // 标签页管理相关状态
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<CategoryItem | null>(null);
+  const [newCategoryTitle, setNewCategoryTitle] = useState('');
+
   const pageSize = 5;
   const paginatedLinks = useMemo(() => {
     const links = storedLinks?.[activeTab] || [];
     return links.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   }, [currentPage, activeTab, storedLinks]);
+
+  // 确保activeTab始终有效
+  useEffect(() => {
+    if (categories.length > 0 && !categories.some((cat) => cat.id === activeTab)) {
+      setActiveTab(categories[0].id);
+    }
+  }, [categories, activeTab]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -97,6 +118,67 @@ export default function App() {
     });
   };
 
+  // === 标签页管理相关函数 ===
+
+  // 打开添加标签页模态框
+  const showAddCategoryModal = () => {
+    setCurrentCategory(null);
+    setNewCategoryTitle('');
+    setIsCategoryModalVisible(true);
+  };
+
+  // 打开编辑标签页模态框
+  const showEditCategoryModal = (category: CategoryItem) => {
+    setCurrentCategory(category);
+    setNewCategoryTitle(category.title);
+    setIsCategoryModalVisible(true);
+  };
+
+  // 保存标签页（添加或更新）
+  const handleSaveCategory = () => {
+    if (!newCategoryTitle.trim()) return;
+
+    if (currentCategory) {
+      // 更新现有标签页
+      setCategories(
+        categories.map((cat) => (cat.id === currentCategory.id ? { ...cat, title: newCategoryTitle } : cat))
+      );
+    } else {
+      // 添加新标签页
+      const newId = randomString(5);
+      setCategories([...categories, { id: newId, title: newCategoryTitle }]);
+    }
+
+    setIsCategoryModalVisible(false);
+  };
+
+  // 删除标签页
+  const handleDeleteCategory = (categoryId: string) => {
+    // 查找待删除标签页的索引
+    const categoryIndex = categories.findIndex((cat) => cat.id === categoryId);
+    if (categoryIndex === -1 || categories.length <= 1) {
+      message.error('至少需要保留一个标签页');
+      return;
+    }
+
+    // 决定删除后应该激活哪个标签页
+    const newActiveTab = categories[categoryIndex === 0 ? 1 : categoryIndex - 1].id;
+
+    // 更新标签页列表
+    setCategories(categories.filter((cat) => cat.id !== categoryId));
+
+    // 更新链接存储，移除该标签页下的链接
+    setStoredLinks((prev) => {
+      const { [categoryId]: _, ...rest } = prev;
+      return rest;
+    });
+
+    // 如果删除的是当前激活的标签页，则切换到另一个标签页
+    if (activeTab === categoryId) {
+      setActiveTab(newActiveTab);
+    }
+  };
+
   return (
     <Card title="相关链接" extra={<p>快捷跳转到对应文档，支持自定义链接</p>}>
       <Tabs
@@ -104,13 +186,18 @@ export default function App() {
         activeKey={activeTab}
         onChange={handleTabChange}
         tabBarExtraContent={
-          <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
-            添加链接
-          </Button>
+          <Space>
+            <Button icon={<SettingOutlined />} onClick={showAddCategoryModal}>
+              管理标签页
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+              添加链接
+            </Button>
+          </Space>
         }
       >
-        {Object.entries(linkCategories).map(([key, title]) => (
-          <TabPane tab={title} key={key}></TabPane>
+        {categories.map((category) => (
+          <TabPane tab={category.title} key={category.id}></TabPane>
         ))}
       </Tabs>
       <List
@@ -171,6 +258,103 @@ export default function App() {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 添加/编辑标签页的模态框 */}
+      <Modal
+        title={currentCategory ? '编辑标签页' : '添加标签页'}
+        open={isCategoryModalVisible}
+        onOk={handleSaveCategory}
+        onCancel={() => setIsCategoryModalVisible(false)}
+      >
+        <Form layout="vertical">
+          <Form.Item label="标签页名称" required>
+            <Input
+              value={newCategoryTitle}
+              onChange={(e) => setNewCategoryTitle(e.target.value)}
+              placeholder="输入标签页名称"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 标签页管理模态框 */}
+      <Modal
+        title="管理标签页"
+        open={isCategoryModalVisible}
+        footer={[
+          <Button
+            key="add"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setCurrentCategory(null);
+              setNewCategoryTitle('');
+            }}
+          >
+            新建标签页
+          </Button>,
+          <Button key="close" onClick={() => setIsCategoryModalVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        onCancel={() => setIsCategoryModalVisible(false)}
+      >
+        <List
+          itemLayout="horizontal"
+          dataSource={categories}
+          renderItem={(item) => (
+            <List.Item
+              key={item.id}
+              actions={[
+                <Button icon={<EditOutlined />} onClick={() => showEditCategoryModal(item)}>
+                  编辑
+                </Button>,
+                <Popconfirm
+                  title="确定要删除这个标签页吗?"
+                  description="删除后，该标签页下的所有链接也将被删除。"
+                  onConfirm={() => handleDeleteCategory(item.id)}
+                  okText="是"
+                  cancelText="否"
+                  disabled={categories.length <= 1}
+                >
+                  <Button icon={<DeleteOutlined />} danger disabled={categories.length <= 1}>
+                    删除
+                  </Button>
+                </Popconfirm>,
+              ]}
+            >
+              <List.Item.Meta title={item.title} />
+            </List.Item>
+          )}
+        />
+        {currentCategory === null ? (
+          <Form layout="vertical" style={{ marginTop: 16 }}>
+            <Form.Item label="新标签页名称" required>
+              <Input
+                value={newCategoryTitle}
+                onChange={(e) => setNewCategoryTitle(e.target.value)}
+                placeholder="输入标签页名称"
+              />
+            </Form.Item>
+            <Button type="primary" onClick={handleSaveCategory} disabled={!newCategoryTitle.trim()}>
+              保存
+            </Button>
+          </Form>
+        ) : (
+          <Form layout="vertical" style={{ marginTop: 16 }}>
+            <Form.Item label="编辑标签页名称" required>
+              <Input
+                value={newCategoryTitle}
+                onChange={(e) => setNewCategoryTitle(e.target.value)}
+                placeholder="输入标签页名称"
+              />
+            </Form.Item>
+            <Button type="primary" onClick={handleSaveCategory} disabled={!newCategoryTitle.trim()}>
+              更新
+            </Button>
+          </Form>
+        )}
       </Modal>
     </Card>
   );

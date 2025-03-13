@@ -1,5 +1,5 @@
-import { CopyOutlined, LinkOutlined, LoadingOutlined, UndoOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Divider, List, message, Pagination, Row, Checkbox, Image } from 'antd';
+import { CopyOutlined, LinkOutlined, LoadingOutlined, UndoOutlined, EyeOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Divider, List, message, Pagination, Row, Checkbox, Image, Modal, Input } from 'antd';
 import ButtonGroup from 'antd/es/button/button-group';
 import React, { useContext, useState } from 'react';
 
@@ -10,6 +10,8 @@ const options = ['iframe', 'a', 'img'];
 
 const PageList = ({ dataSource, isImg }: { dataSource: { url: string; key: number }[]; isImg: boolean }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalData, setModalData] = useState<{ url: string; key: number }[]>([]);
   const pageSize = 5;
   const paginatedData = dataSource.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -17,8 +19,16 @@ const PageList = ({ dataSource, isImg }: { dataSource: { url: string; key: numbe
     setCurrentPage(page);
   };
 
+  const showDataModal = () => {
+    setModalData(dataSource);
+    setIsModalVisible(true);
+  };
+
   return (
     <>
+      <Button type="primary" icon={<EyeOutlined />} onClick={showDataModal} style={{ marginTop: 10 }}>
+        查看完整列表
+      </Button>
       <List
         itemLayout="horizontal"
         dataSource={paginatedData}
@@ -68,6 +78,25 @@ const PageList = ({ dataSource, isImg }: { dataSource: { url: string; key: numbe
         onChange={handlePageChange}
         style={{ marginTop: 20, textAlign: 'center' }}
       />
+
+      <Modal
+        title="完整数据列表"
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button type="primary" key="close" onClick={() => setIsModalVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={700}
+      >
+        <Input.TextArea
+          value={JSON.stringify(modalData, null, 2)}
+          rows={15}
+          readOnly
+          style={{ fontFamily: 'monospace' }}
+        />
+      </Modal>
     </>
   );
 };
