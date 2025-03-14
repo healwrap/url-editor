@@ -33,3 +33,6 @@ dist/
 .tsbuildinfo
 
 examples
+
+# github action 安装时会冲突，暂时没找到原因，先不提交了
+pnpm-lock.yaml
