@@ -36,13 +36,13 @@ const App = () => {
           <TabPane tab="获取链接" key="3">
             <GetUrls></GetUrls>
           </TabPane>
-          <TabPane tab="储存信息" key="4">
-            <StoreData></StoreData>
-          </TabPane>
-          <TabPane tab="相关链接" key="5">
+          <TabPane tab="相关链接" key="4">
             <QuickJump></QuickJump>
           </TabPane>
-          <TabPane tab="使用教程(打开外链)" key="6"></TabPane>
+          <TabPane tab="储存信息" key="5" disabled>
+            <StoreData></StoreData>
+          </TabPane>
+          <TabPane tab="使用教程" key="6"></TabPane>
         </Tabs>
         <GithubBanner />
       </div>

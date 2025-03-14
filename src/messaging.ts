@@ -7,7 +7,7 @@ interface ProtocolMap {
   getLinks(data: string[]): { [key in string]: { url: string; key: number }[] };
   reloadPage(data: string): boolean;
   forwardAndBack(data: { action: 'forward' | 'back'; n?: number }): boolean;
-  getLoginAcessURL(data: string): any[];
+  getRequestURL(data: string): any[];
   openAndCloseRequestListener(data: { enable: boolean; tabId: number }): boolean;
 }
 

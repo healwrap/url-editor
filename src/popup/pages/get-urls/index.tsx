@@ -94,7 +94,7 @@ const PageList = ({ dataSource, isImg }: { dataSource: { url: string; key: numbe
           value={JSON.stringify(modalData, null, 2)}
           rows={15}
           readOnly
-          style={{ fontFamily: 'monospace' }}
+          style={{ fontFamily: 'monospace', resize: 'none' }}
         />
       </Modal>
     </>
@@ -123,7 +123,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Card title="获取链接" extra={<p>获取网页中的链接，方便调试</p>}>
+    <Card title="获取网页链接" extra={<p>获取网页中的链接，方便调试</p>}>
       <Checkbox.Group options={options} value={categories} onChange={handleCheckboxChange} />
       <Divider dashed plain />
       <ButtonGroup>
@@ -142,9 +142,9 @@ const App: React.FC = () => {
           <PageList dataSource={links[key]} isImg={key === 'img'} />
         </div>
       ))}
-      <Divider dashed plain>
+      {/* <Divider dashed plain>
         历史网站及对应iframe链接(考虑做，评估实用性)
-      </Divider>
+      </Divider> */}
     </Card>
   );
 };

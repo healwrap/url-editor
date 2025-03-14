@@ -377,20 +377,17 @@ const EditCurrent: React.FC = () => {
               width={700}
             >
               <Alert
-                message="提示"
                 description="请在下方编辑当前域名的记录，编辑完成后点击确定保存。注意保持正确的JSON格式。提交空内容视为删除所有记录。"
                 type="info"
                 showIcon
                 style={{ marginBottom: 16 }}
               />
-              {parseError && (
-                <Alert message="错误" description={parseError} type="error" showIcon style={{ marginBottom: 16 }} />
-              )}
+              {parseError && <Alert description={parseError} type="error" showIcon style={{ marginBottom: 16 }} />}
               <Input.TextArea
                 value={hostDataText}
                 onChange={handleTextChange}
                 rows={15}
-                style={{ fontFamily: 'monospace' }}
+                style={{ fontFamily: 'monospace', resize: 'none' }}
               />
             </Modal>
           </Space>
@@ -403,7 +400,6 @@ const EditCurrent: React.FC = () => {
             {url && (
               <div style={{ marginTop: 20, position: 'sticky', top: 140 }}>
                 <QRCodeSVG value={url} size={256} />
-                <div style={{ fontSize: 11 }}>注：移动端可能需要一些特殊的参数和链接才可以访问</div>
               </div>
             )}
           </Col>

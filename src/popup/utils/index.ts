@@ -23,8 +23,8 @@ export const forwardAndBack = async (tab: Browser.Tabs.Tab, action: 'forward' | 
   return await sendMessage('forwardAndBack', { action }, { tabId: tab.id });
 };
 
-export const getLoginAccessURL = async (key: string) => {
-  return await sendMessage('getLoginAcessURL', key);
+export const getRequestURL = async (key: string) => {
+  return await sendMessage('getRequestURL', key);
 };
 
 export const openAndCloseRequestListener = async (tabId: number, enable: boolean) => {

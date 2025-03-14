@@ -26,19 +26,8 @@ const webRequestListener = (details: any) => {
   if (urlReg && urlReg.test(details.url)) urls.push(details);
 };
 
-onMessage('getLoginAcessURL', (message) => {
-  console.log('获取免登链接...');
-  // 获取urls中所有url，根据url的host分类
-  // res = {};
-  // urls.forEach((item) => {
-  //   const url = URI(item.url);
-  //   const key = url.hostname();
-  //   if (!res[key]) res[key] = [];
-  //   res[key].push({ url: item.url, initiator: item.initiator, method: item.method });
-  //   // 去重
-  //   res[key] = Array.from(new Set(res[key]));
-  // });
-  // console.log(res);
+onMessage('getRequestURL', (message) => {
+  console.log('获取链接...');
   return urls;
 });
 

@@ -148,8 +148,6 @@ export default function App() {
       const newId = randomString(5);
       setCategories([...categories, { id: newId, title: newCategoryTitle }]);
     }
-
-    setIsCategoryModalVisible(false);
   };
 
   // 删除标签页
@@ -180,7 +178,7 @@ export default function App() {
   };
 
   return (
-    <Card title="相关链接" extra={<p>快捷跳转到对应文档，支持自定义链接</p>}>
+    <Card title="相关链接" extra={<p>快捷跳转到对应文档，支持自定义链接</p>} style={{ minHeight: 500 }}>
       <Tabs
         defaultActiveKey="1"
         activeKey={activeTab}
@@ -207,13 +205,13 @@ export default function App() {
           <List.Item
             key={item.id}
             actions={[
-              <Button icon={<LinkOutlined />} onClick={() => openPage(tab, item.url)}>
+              <Button icon={<LinkOutlined />} type="text" onClick={() => openPage(tab, item.url)}>
                 打开
               </Button>,
-              <Button icon={<EditOutlined />} onClick={() => showEditModal(item)}>
+              <Button icon={<EditOutlined />} type="text" onClick={() => showEditModal(item)}>
                 编辑
               </Button>,
-              <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteLink(item.id)}>
+              <Button icon={<DeleteOutlined />} type="text" danger onClick={() => handleDeleteLink(item.id)}>
                 删除
               </Button>,
             ]}
@@ -226,7 +224,6 @@ export default function App() {
             />
           </List.Item>
         )}
-        locale={{ emptyText: '暂无链接，点击"添加链接"按钮新建' }}
       />
 
       {(storedLinks?.[activeTab]?.length || 0) > pageSize && (
@@ -282,32 +279,42 @@ export default function App() {
       <Modal
         title="管理标签页"
         open={isCategoryModalVisible}
-        footer={[
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setCurrentCategory(null);
-              setNewCategoryTitle('');
-            }}
-          >
-            新建标签页
-          </Button>,
-          <Button key="close" onClick={() => setIsCategoryModalVisible(false)}>
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         onCancel={() => setIsCategoryModalVisible(false)}
       >
+        <Form style={{ marginBottom: 16 }}>
+          <Form.Item label={currentCategory === null ? '新标签页名称' : '编辑标签页名称'} required>
+            <Space.Compact block>
+              <Input
+                value={newCategoryTitle}
+                onChange={(e) => setNewCategoryTitle(e.target.value)}
+                placeholder="输入标签页名称"
+              />
+              <Button type="primary" onClick={handleSaveCategory} disabled={!newCategoryTitle.trim()}>
+                {currentCategory === null ? '保存' : '更新'}
+              </Button>
+              <Button
+                type={currentCategory === null ? 'primary' : 'default'}
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setCurrentCategory(null);
+                  setNewCategoryTitle('');
+                }}
+              >
+                新建
+              </Button>
+            </Space.Compact>
+          </Form.Item>
+        </Form>
         <List
           itemLayout="horizontal"
           dataSource={categories}
+          style={{ maxHeight: 240, overflow: 'auto' }}
           renderItem={(item) => (
             <List.Item
               key={item.id}
               actions={[
-                <Button icon={<EditOutlined />} onClick={() => showEditCategoryModal(item)}>
+                <Button icon={<EditOutlined />} type="text" onClick={() => showEditCategoryModal(item)}>
                   编辑
                 </Button>,
                 <Popconfirm
@@ -318,7 +325,7 @@ export default function App() {
                   cancelText="否"
                   disabled={categories.length <= 1}
                 >
-                  <Button icon={<DeleteOutlined />} danger disabled={categories.length <= 1}>
+                  <Button icon={<DeleteOutlined />} type="text" danger disabled={categories.length <= 1}>
                     删除
                   </Button>
                 </Popconfirm>,
@@ -328,33 +335,6 @@ export default function App() {
             </List.Item>
           )}
         />
-        {currentCategory === null ? (
-          <Form layout="vertical" style={{ marginTop: 16 }}>
-            <Form.Item label="新标签页名称" required>
-              <Input
-                value={newCategoryTitle}
-                onChange={(e) => setNewCategoryTitle(e.target.value)}
-                placeholder="输入标签页名称"
-              />
-            </Form.Item>
-            <Button type="primary" onClick={handleSaveCategory} disabled={!newCategoryTitle.trim()}>
-              保存
-            </Button>
-          </Form>
-        ) : (
-          <Form layout="vertical" style={{ marginTop: 16 }}>
-            <Form.Item label="编辑标签页名称" required>
-              <Input
-                value={newCategoryTitle}
-                onChange={(e) => setNewCategoryTitle(e.target.value)}
-                placeholder="输入标签页名称"
-              />
-            </Form.Item>
-            <Button type="primary" onClick={handleSaveCategory} disabled={!newCategoryTitle.trim()}>
-              更新
-            </Button>
-          </Form>
-        )}
       </Modal>
     </Card>
   );
