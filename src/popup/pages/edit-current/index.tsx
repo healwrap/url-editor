@@ -24,6 +24,7 @@ import {
   Space,
   Alert,
   type AutoCompleteProps,
+  Segmented,
 } from 'antd';
 import { QRCodeSVG } from 'qrcode.react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
@@ -76,6 +77,9 @@ const EditCurrent: React.FC = () => {
   const [path, setPath] = useState('');
   const { tab } = useContext(ConfigContext);
   const paramIndex = useRef(0);
+
+  // 添加二维码显示状态控制
+  const [showQRCode, setShowQRCode] = useStorage<boolean>('showQRCode', true);
 
   const [currentParamKey, setCurrentParamKey] = useState<string>('');
   // 参数、主机、路径、片段的自动补全选项
@@ -397,13 +401,22 @@ const EditCurrent: React.FC = () => {
         </Divider>
         <Row>
           <Col span={10}>
-            {url && (
-              <div style={{ marginTop: 20, position: 'sticky', top: 140 }}>
+            <Segmented
+              options={[
+                { label: '显示二维码', value: true },
+                { label: '隐藏二维码', value: false },
+              ]}
+              value={showQRCode}
+              style={{ margin: 10 }}
+              onChange={(value) => setShowQRCode(value as boolean)}
+            />
+            {url && showQRCode && (
+              <div style={{ marginTop: 10, position: 'sticky', top: 140 }}>
                 <QRCodeSVG value={url} size={256} />
               </div>
             )}
           </Col>
-          <Col span={14}>
+          <Col span={showQRCode ? 14 : 24}>
             <Form.Item label="param">
               <Space direction="vertical">
                 {params.map((item) => (
