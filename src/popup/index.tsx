@@ -33,7 +33,7 @@ const App = () => {
           <TabPane tab="获取请求链接" key="2">
             <GetRequest></GetRequest>
           </TabPane>
-          <TabPane tab="获取链接" key="3">
+          <TabPane tab="获取页面链接" key="3">
             <GetUrls></GetUrls>
           </TabPane>
           <TabPane tab="相关链接" key="4">

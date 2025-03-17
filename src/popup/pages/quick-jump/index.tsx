@@ -11,6 +11,7 @@ import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { ConfigContext } from '~popup';
 import { openPage, randomString } from '~popup/utils';
 import { useStorage } from '@plasmohq/storage/hook';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const { TabPane } = Tabs;
 
@@ -177,6 +178,16 @@ export default function App() {
     }
   };
 
+  const handleCategoryDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newCategories = Array.from(categories);
+    const [reorderedItem] = newCategories.splice(result.source.index, 1);
+    newCategories.splice(result.destination.index, 0, reorderedItem);
+
+    setCategories(newCategories);
+  };
+
   return (
     <Card title="相关链接" extra={<p>快捷跳转到对应文档，支持自定义链接</p>} style={{ minHeight: 500 }}>
       <Tabs
@@ -257,24 +268,6 @@ export default function App() {
         </Form>
       </Modal>
 
-      {/* 添加/编辑标签页的模态框 */}
-      <Modal
-        title={currentCategory ? '编辑标签页' : '添加标签页'}
-        open={isCategoryModalVisible}
-        onOk={handleSaveCategory}
-        onCancel={() => setIsCategoryModalVisible(false)}
-      >
-        <Form layout="vertical">
-          <Form.Item label="标签页名称" required>
-            <Input
-              value={newCategoryTitle}
-              onChange={(e) => setNewCategoryTitle(e.target.value)}
-              placeholder="输入标签页名称"
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-
       {/* 标签页管理模态框 */}
       <Modal
         title="管理标签页"
@@ -306,35 +299,50 @@ export default function App() {
             </Space.Compact>
           </Form.Item>
         </Form>
-        <List
-          itemLayout="horizontal"
-          dataSource={categories}
-          style={{ maxHeight: 240, overflow: 'auto' }}
-          renderItem={(item) => (
-            <List.Item
-              key={item.id}
-              actions={[
-                <Button icon={<EditOutlined />} type="text" onClick={() => showEditCategoryModal(item)}>
-                  编辑
-                </Button>,
-                <Popconfirm
-                  title="确定要删除这个标签页吗?"
-                  description="删除后，该标签页下的所有链接也将被删除。"
-                  onConfirm={() => handleDeleteCategory(item.id)}
-                  okText="是"
-                  cancelText="否"
-                  disabled={categories.length <= 1}
-                >
-                  <Button icon={<DeleteOutlined />} type="text" danger disabled={categories.length <= 1}>
-                    删除
-                  </Button>
-                </Popconfirm>,
-              ]}
-            >
-              <List.Item.Meta title={item.title} />
-            </List.Item>
-          )}
-        />
+        <DragDropContext onDragEnd={handleCategoryDragEnd}>
+          <Droppable droppableId="categories">
+            {(provided) => (
+              <List
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                itemLayout="horizontal"
+                dataSource={categories}
+                style={{ maxHeight: 240, overflow: 'auto' }}
+                renderItem={(item: CategoryItem, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                    {(provided) => (
+                      <List.Item
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        key={item.id}
+                        actions={[
+                          <Button icon={<EditOutlined />} type="text" onClick={() => showEditCategoryModal(item)}>
+                            编辑
+                          </Button>,
+                          <Popconfirm
+                            title="确定要删除这个标签页吗?"
+                            description="删除后，该标签页下的所有链接也将被删除。"
+                            onConfirm={() => handleDeleteCategory(item.id)}
+                            okText="是"
+                            cancelText="否"
+                            disabled={categories.length <= 1}
+                          >
+                            <Button icon={<DeleteOutlined />} type="text" danger disabled={categories.length <= 1}>
+                              删除
+                            </Button>
+                          </Popconfirm>,
+                        ]}
+                      >
+                        <List.Item.Meta title={item.title} />
+                      </List.Item>
+                    )}
+                  </Draggable>
+                )}
+              />
+            )}
+          </Droppable>
+        </DragDropContext>
       </Modal>
     </Card>
   );

@@ -1,9 +1,10 @@
 {
   "name": "@healwrap/url-editor",
-  "displayName": "@healwrap/url-editor",
+  "displayName": "URL Editor",
   "version": "0.0.1",
   "description": "URL编辑器，提升开发效率",
   "author": "pepedd@qq.com",
+  "privacy_policy": "https://github.com/healwrap/url-editor/blob/master/PRIVACY.md",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
@@ -19,6 +20,7 @@
     "plasmo": "0.90.3",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
     "urijs": "^1.19.11",
     "webextension-polyfill": "^0.12.0"
@@ -45,8 +47,6 @@
     ],
     "permissions": [
       "storage",
-      "declarativeContent",
-      "bookmarks",
       "webRequest",
       "tabs",
       "activeTab"
