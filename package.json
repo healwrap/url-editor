@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
-    "package": "plasmo package"
+    "package": "plasmo package",
+    "postinstall": "bash ./scripts/install-hooks.sh"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.23.0",
@@ -49,7 +50,8 @@
       "storage",
       "webRequest",
       "tabs",
-      "activeTab"
+      "activeTab",
+      "contextMenus"
     ],
     "commands": {
       "open-popup": {
