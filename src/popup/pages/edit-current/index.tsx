@@ -149,26 +149,36 @@ const EditCurrent: React.FC = () => {
   };
 
   useEffect(() => {
-    (async () => {
-      if (!tab?.id) return;
+    // 使用setTimeout让URL获取延迟执行，确保tab已完全加载
+    const timer = setTimeout(() => {
+      console.log('初始化URL编辑器');
+      if (!tab?.id) {
+        console.error('无法获取tab信息，请确保浏览器支持tabs API');
+        return;
+      }
+
       try {
-        const currentURL = await getCurrentURL(tab);
+        // 直接使用与刷新按钮相同的方式获取URL
+        const currentURL = getCurrentURL(tab);
+        console.log('获取到的原始URL:', currentURL);
+
+        // 直接设置URL，与按钮行为一致
         setUrl(currentURL);
-        console.log({ currentURL, first: isFirstRender.current });
 
         // 仅在首次加载时记录URL信息
         if (isFirstRender.current && currentURL) {
           isFirstRender.current = false;
-          // 不知道为啥arc获取不到储存信息，而chrome却可以
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          console.log(hostData);
+          console.log('记录历史数据');
           recordUrlInfo(currentURL);
         }
-      } catch {
-        message.error('与content script通信失败，请手动刷新页面重试');
+      } catch (error) {
+        console.error('初始化URL编辑器失败:', error);
+        message.error('无法获取当前页面URL，请刷新页面重试');
       }
-    })();
-  }, [tab]);
+    }, 100); // 添加100ms延迟确保tab对象已完全加载
+
+    return () => clearTimeout(timer);
+  }, [tab?.id]);
 
   // 用户手动更新 url 或重置时解析参数，但不记录
   useEffect(() => {
@@ -332,7 +342,7 @@ const EditCurrent: React.FC = () => {
 
   return (
     <Form layout="vertical">
-      <Card title="调整URL" extra={<p>方便调整当前页面的URL，包括参数，生成对应的二维码，便于手机调试</p>}>
+      <Card title="编辑URL" extra={<p>方便调整URL，生成对应的二维码，便于手机调试</p>}>
         <Row
           style={{
             position: 'sticky',
@@ -349,8 +359,8 @@ const EditCurrent: React.FC = () => {
             <Input value={url} onChange={(e) => setUrl(e.target.value)} onPressEnter={handleReloadPage} />
             <Button
               icon={<SyncOutlined />}
-              onClick={async () => {
-                setUrl(await getCurrentURL(tab));
+              onClick={() => {
+                setUrl(getCurrentURL(tab));
               }}
             ></Button>
             <Button icon={<CopyOutlined />} onClick={() => copyToClipboard(url)}></Button>

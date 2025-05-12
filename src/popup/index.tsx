@@ -1,5 +1,5 @@
 import { Tabs } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type Browser from 'webextension-polyfill';
 import browser from 'webextension-polyfill';
 
@@ -8,7 +8,6 @@ import EditCurrent from './pages/edit-current';
 import GetRequest from './pages/get-request';
 import GetUrls from './pages/get-urls';
 import QuickJump from './pages/quick-jump';
-import StoreData from './pages/store-data';
 import GithubBanner from './components/github-banner';
 
 const { TabPane } = Tabs;
@@ -17,32 +16,45 @@ export const ConfigContext = React.createContext<{ tab?: Browser.Tabs.Tab }>({})
 
 const App = () => {
   const [tab, setTab] = useState<Browser.Tabs.Tab>();
+  
+  // 改进获取当前tab的方式，使用activeTab权限更可靠
   useEffect(() => {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tab) => {
-      console.log(tab);
-      setTab(tab[0]);
-    });
+    const getCurrentTab = async () => {
+      try {
+        // 使用查询参数获取当前标签页
+        const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+        
+        if (tabs && tabs.length > 0) {
+          console.log('成功获取当前标签页:', tabs[0]);
+          setTab(tabs[0]);
+        } else {
+          console.error('无法获取当前标签页信息');
+        }
+      } catch (error) {
+        console.error('获取当前标签页出错:', error);
+      }
+    };
+    
+    getCurrentTab();
   }, []);
+  
   return (
     <ConfigContext.Provider value={{ tab }}>
       <div className={styles['popup-container']}>
-        <Tabs defaultActiveKey="1" onChange={(key) => key === '6' && window.open('./options.html', '__black')}>
-          <TabPane tab="编辑当前页面" key="1">
+        <Tabs defaultActiveKey="1" onChange={(key) => key === '4' && window.open('./options.html', '__blank')}>
+          <TabPane tab="编辑URL" key="1">
             <EditCurrent></EditCurrent>
           </TabPane>
-          <TabPane tab="获取请求链接" key="2">
-            <GetRequest></GetRequest>
-          </TabPane>
-          <TabPane tab="获取页面链接" key="3">
+          <TabPane tab="抓取链接" key="3">
             <GetUrls></GetUrls>
           </TabPane>
-          <TabPane tab="相关链接" key="4">
+          <TabPane tab="快捷跳转" key="4">
             <QuickJump></QuickJump>
           </TabPane>
-          <TabPane tab="储存信息" key="5" disabled>
-            <StoreData></StoreData>
+          <TabPane tab="使用教程" key="4"></TabPane>
+          <TabPane tab="获取请求链接" key="5" disabled>
+            <GetRequest></GetRequest>
           </TabPane>
-          <TabPane tab="使用教程" key="6"></TabPane>
         </Tabs>
         <GithubBanner />
       </div>

@@ -1,23 +1,5 @@
 import { onMessage, sendMessage } from '~/messaging';
 
-onMessage('getURL', (message) => {
-  const url = window.location.href;
-  console.log('获取URL', url);
-  return url;
-});
-
-onMessage('setURL', (message) => {
-  try {
-    // 如果当前url==message.data，则不会刷新页面
-    if (window.location.href === message.data) return;
-    window.location.href = message.data;
-  } catch (err) {
-    console.error(err);
-    return false;
-  }
-  return true;
-});
-
 onMessage('getLinks', (message) => {
   console.log(`获取${message.data}链接`);
   const res = {};
@@ -42,39 +24,11 @@ onMessage('getLinks', (message) => {
         res[key] = Array.from(imgElems)
           .map((img) => img.src)
           .filter((src) => src)
-          .map((img, index) => ({ url: img, key: index }));
+          .map((src, index) => ({ url: src, key: index }));
         break;
       default:
         break;
     }
   });
   return res;
-});
-
-onMessage('reloadPage', (message) => {
-  console.log('reloadPage');
-
-  // 如果传入url，则在当前页面打开
-  if (message.data) {
-    // 如果当前url==message.data，则不会刷新页面
-    if (window.location.href === message.data) return;
-    window.location.href = message.data;
-  } else {
-    window.location.reload();
-  }
-  return true;
-});
-
-onMessage('openURL', (message) => {
-  window.open(message.data);
-  return true;
-});
-
-onMessage('forwardAndBack', (message) => {
-  if (message.data.action === 'forward') {
-    window.history.forward();
-  }
-  if (message.data.action === 'back') {
-    window.history.back();
-  }
 });

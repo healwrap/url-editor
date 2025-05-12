@@ -1,30 +1,74 @@
 import { message } from 'antd';
 import type Browser from 'webextension-polyfill';
+import browser from 'webextension-polyfill';
 
 import { sendMessage } from '~messaging';
 
-export const getCurrentURL = async (tab: Browser.Tabs.Tab) => {
-  return await sendMessage('getURL', undefined, { tabId: tab.id });
+export const getCurrentURL = (tab: Browser.Tabs.Tab) => {
+  if (!tab?.id) {
+    console.error('无法获取tab信息');
+    return '';
+  }
+  return tab.url || '';
 };
 
-export const getLinks = async (tab: Browser.Tabs.Tab, categories: string[]) => {
-  return await sendMessage('getLinks', categories, { tabId: tab.id });
+export const setURL = async (tab: Browser.Tabs.Tab, url: string) => {
+  if (!tab?.id) return false;
+  try {
+    await browser.tabs.update(tab.id, { url });
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
 };
 
 export const openPage = async (tab: Browser.Tabs.Tab, url: string) => {
-  return await sendMessage('openURL', url, { tabId: tab.id });
+  try {
+    await browser.tabs.create({ url });
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
 };
 
 export const reloadPage = async (tab: Browser.Tabs.Tab, url?: string) => {
-  return await sendMessage('reloadPage', url, { tabId: tab.id });
+  if (!tab?.id) return false;
+  try {
+    if (url) {
+      await browser.tabs.update(tab.id, { url });
+    } else {
+      await browser.tabs.reload(tab.id);
+    }
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
 };
 
 export const forwardAndBack = async (tab: Browser.Tabs.Tab, action: 'forward' | 'back') => {
-  return await sendMessage('forwardAndBack', { action }, { tabId: tab.id });
+  if (!tab?.id) return false;
+  try {
+    if (action === 'forward') {
+      await browser.tabs.goForward(tab.id);
+    } else if (action === 'back') {
+      await browser.tabs.goBack(tab.id);
+    }
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
 };
 
 export const getRequestURL = async (key: string) => {
   return await sendMessage('getRequestURL', key);
+};
+
+export const getLinks = async (tab: Browser.Tabs.Tab, categories: string[]) => {
+  return await sendMessage('getLinks', categories, { tabId: tab.id });
 };
 
 export const openAndCloseRequestListener = async (tabId: number, enable: boolean) => {

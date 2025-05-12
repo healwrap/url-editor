@@ -95,7 +95,9 @@
 
 #### 1.编辑URL
 
-因为popup不能操作页面，也就无法修改URL，所以使用注入在页面中的content script实现页面URL的获取，页面刷新等操作
+~~因为popup不能操作页面，也就无法修改URL，所以使用注入在页面中的content script实现页面URL的获取，页面刷新等操作~~
+
+ 探索一下tab的API吧，让background脚本来操作页面
 
 #### 2.监听网络请求
 

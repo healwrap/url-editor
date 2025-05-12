@@ -1,8 +1,8 @@
 {
   "name": "@healwrap/url-editor",
-  "displayName": "URL Editor",
-  "version": "0.0.1",
-  "description": "URL编辑器，提升开发效率",
+  "displayName": "URL Editor(URL 编辑器)",
+  "version": "0.0.2",
+  "description": "功能丰富的URL编辑器，提供一系列与 URL 和网络请求管理相关的强大功能，使网页调试和测试更加便捷",
   "author": "pepedd@qq.com",
   "privacy_policy": "https://github.com/healwrap/url-editor/blob/master/PRIVACY.md",
   "scripts": {

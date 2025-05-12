@@ -189,7 +189,7 @@ export default function App() {
   };
 
   return (
-    <Card title="相关链接" extra={<p>快捷跳转到对应文档，支持自定义链接</p>} style={{ minHeight: 500 }}>
+    <Card title="相关链接" extra={<p>快捷跳转到对应文档、工具链接；需要自行配置</p>} style={{ minHeight: 500 }}>
       <Tabs
         defaultActiveKey="1"
         activeKey={activeTab}
