@@ -1,4 +1,3 @@
-// typescript
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -185,49 +184,117 @@ const EditCurrent: React.FC = () => {
     try {
       // 解析新 url，更新 params
       const uri = new URI(url);
-      const newParams = uri.query(true);
-      setParams(mergeParams(params, newParams));
-      setFragment(uri.fragment());
+
+      // 解码查询参数
+      const encodedParams = uri.query(true);
+      const decodedParams: Record<string, string> = {};
+      Object.entries(encodedParams).forEach(([key, value]) => {
+        // 解码key和value，确保特殊字符正确显示
+        try {
+          const decodedKey = decodeURIComponent(key);
+          const decodedValue = typeof value === 'string' ? decodeURIComponent(value) : value;
+          decodedParams[decodedKey] = decodedValue;
+        } catch (e) {
+          // 如果解码失败，保留原值
+          decodedParams[key] = value;
+        }
+      });
+      setParams(mergeParams(params, decodedParams));
+
+      // 解码fragment，确保特殊字符正常显示
+      try {
+        const decodedFragment = decodeURIComponent(uri.fragment());
+        setFragment(decodedFragment);
+      } catch (e) {
+        setFragment(uri.fragment());
+      }
+
       setHost(uri.host());
-      setPath(uri.path());
-    } catch {}
+
+      // 解码path，确保中文等特殊字符正常显示
+      try {
+        const decodedPath = decodeURIComponent(uri.path());
+        setPath(decodedPath);
+      } catch (e) {
+        setPath(uri.path());
+      }
+    } catch (error) {
+      console.error('解析URL失败:', error);
+    }
   }, [url]);
 
   // 更新自动补全选项
   useEffect(() => {
     if (host && hostData[host]) {
       setParamKeyOptions(Object.keys(hostData[host].param).map((k) => ({ value: k })));
-      setPathOptions(hostData[host].path.map((p) => ({ value: p })));
-      setFragmentOptions(hostData[host].fragment.map((f) => ({ value: f })));
+
+      // 确保显示的path是解码后的内容
+      setPathOptions(
+        hostData[host].path.map((p) => {
+          try {
+            return { value: decodeURIComponent(p) };
+          } catch (e) {
+            return { value: p };
+          }
+        })
+      );
+
+      // 确保显示的fragment是解码后的内容
+      setFragmentOptions(
+        hostData[host].fragment.map((f) => {
+          try {
+            return { value: decodeURIComponent(f) };
+          } catch (e) {
+            return { value: f };
+          }
+        })
+      );
     }
   }, [host, hostData]);
-
-  // 当选择参数key时更新对应的value选项
-  useEffect(() => {
-    if (host && hostData[host] && currentParamKey && hostData[host].param[currentParamKey]) {
-      setParamValueOptions(hostData[host].param[currentParamKey].map((v) => ({ value: v })));
-    } else {
-      setParamValueOptions([]);
-    }
-  }, [host, hostData, currentParamKey]);
 
   useEffect(() => {
     try {
       const uri = new URI(url);
-      // 数组params转换为对象
-      const newParams = params.reduce(
-        (acc, item) => {
-          acc[item.key] = item.value;
-          return acc;
-        },
-        {} as Record<string, string>
-      );
+
+      // 处理查询参数，确保特殊字符被正确编码
+      const newParams = {} as Record<string, string>;
+      params.forEach((item) => {
+        // 无需手动编码，URI.js会处理这部分
+        newParams[item.key] = item.value;
+      });
       uri.query(newParams);
+
+      // 处理fragment，特殊字符需要编码
       uri.fragment(fragment);
+
+      // 设置主机名
       uri.host(host);
-      uri.path(path);
-      setUrl(uri.toString());
-    } catch {}
+
+      // 处理路径，确保特殊字符被正确编码
+      try {
+        // 检测path是否已经被编码
+        const isAlreadyEncoded = path.includes('%') && decodeURIComponent(path) !== path;
+
+        // 如果已编码，直接使用；否则交给URI.js处理
+        if (isAlreadyEncoded) {
+          uri.path(path);
+        } else {
+          // 让URI.js自己处理路径编码
+          uri.path(path);
+        }
+      } catch (e) {
+        // 如果出错，尝试直接设置
+        uri.path(path);
+      }
+
+      // 如果URL有变化，更新状态
+      const newUrl = uri.toString();
+      if (newUrl !== url) {
+        setUrl(newUrl);
+      }
+    } catch (error) {
+      console.error('更新URL失败:', error);
+    }
   }, [params, fragment, host, path]);
 
   const addParam = () => {

@@ -45,10 +45,10 @@ const App = () => {
           <TabPane tab="编辑URL" key="1">
             <EditCurrent></EditCurrent>
           </TabPane>
-          <TabPane tab="抓取链接" key="3">
+          <TabPane tab="抓取链接" key="2">
             <GetUrls></GetUrls>
           </TabPane>
-          <TabPane tab="快捷跳转" key="4">
+          <TabPane tab="快捷跳转" key="3">
             <QuickJump></QuickJump>
           </TabPane>
           <TabPane tab="使用教程" key="4"></TabPane>
